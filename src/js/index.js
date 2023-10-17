@@ -8,6 +8,7 @@ const gallery = document.querySelector('.gallery');
 const loadMoreBtn = document.querySelector('.load-more');
 
 let searchQuery = '';
+let page = 1;
 
 loadMoreBtn.style.display = 'none';
 
@@ -65,7 +66,6 @@ async function onSubmit(e) {
 }
 
 async function onLoadMore() {
-  let page = 1;
   const images = await getImages(searchQuery, (page = 1));
 
   if (images.length > 0) {
