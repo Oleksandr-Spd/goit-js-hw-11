@@ -65,6 +65,7 @@ async function onSubmit(e) {
 }
 
 async function onLoadMore() {
+  let page = 1;
   const images = await getImages(searchQuery, (page = 1));
 
   if (images.length > 0) {
