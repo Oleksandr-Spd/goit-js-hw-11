@@ -9,7 +9,7 @@ const loadMoreBtn = document.querySelector('.load-more');
 
 let searchQuery = '';
 let page = 1;
-
+``;
 loadMoreBtn.style.display = 'none';
 
 searchForm.addEventListener('submit', onSubmit);
