@@ -9,7 +9,9 @@ const loadMoreBtn = document.querySelector('.load-more');
 
 let searchQuery = '';
 let page = 1;
-``;
+let perPage = 40;
+let isLoading = false;
+
 loadMoreBtn.style.display = 'none';
 
 searchForm.addEventListener('submit', onSubmit);
@@ -45,38 +47,59 @@ function createHtml(image) {
   `;
 }
 
+async function processImages() {
+  try {
+    const images = await getImages(searchQuery, page, perPage);
+
+    if (images.length > 0) {
+      displayImages(images);
+      toggleLoadMoreBtn(true);
+      displayTotalHits(images.length);
+      page++;
+    } else {
+      toggleLoadMoreBtn(false);
+      if (page === 1) {
+        Notiflix.Notify.info('Sorry, no images found for your search query.');
+      } else {
+        Notiflix.Notify.info(
+          "We're sorry, but you've reached the end of search results."
+        );
+      }
+    }
+  } catch (error) {
+    Notiflix.Notify.failure(error.message);
+  }
+}
+
 async function onSubmit(e) {
   e.preventDefault();
-  searchQuery = e.target.searchQuery.value;
+  searchQuery = e.target.searchQuery.value.trim();
   page = 1;
   gallery.innerHTML = '';
   toggleLoadMoreBtn(false);
 
-  const images = await getImages(searchQuery, page);
+  if (searchQuery.length === 0) {
+    return;
+  }
 
-  if (images.length > 0) {
-    displayImages(images);
-    displayTotalHits(images.length);
-    toggleLoadMoreBtn(true);
-  } else {
-    Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.'
-    );
+  try {
+    await processImages();
+  } catch (error) {
+    Notiflix.Notify.failure(error.message);
   }
 }
 
 async function onLoadMore() {
-  const images = await getImages(searchQuery, (page = 1));
+  if (!isLoading) {
+    isLoading = true;
 
-  if (images.length > 0) {
-    displayImages(images);
-    toggleLoadMoreBtn(images.length);
-    scrollPageSmoothly();
-  } else {
-    toggleLoadMoreBtn(images.length);
-    Notiflix.Notify.info(
-      "We're sorry, but you've reached the end of search results."
-    );
+    try {
+      await processImages();
+      isLoading = false;
+    } catch (error) {
+      Notiflix.Notify.failure(error.message);
+      isLoading = false;
+    }
   }
 }
 
@@ -87,11 +110,7 @@ function displayImages(images) {
 }
 
 function toggleLoadMoreBtn(show) {
-  if (show) {
-    loadMoreBtn.style.display = 'block';
-  } else {
-    loadMoreBtn.style.display = 'none';
-  }
+  loadMoreBtn.style.display = show ? 'block' : 'none';
 }
 
 function scrollPageSmoothly() {
